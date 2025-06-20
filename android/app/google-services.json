@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "857254045115",
+    "project_id": "monitoramento-f93ba",
+    "storage_bucket": "monitoramento-f93ba.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:857254045115:android:baf9ab8816d68a87abd09e",
+        "android_client_info": {
+          "package_name": "com.parentalcontrolandroid"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDnO3gdZyTn-YrbBCHNvo1w4evpsNzPpSM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
