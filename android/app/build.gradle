@@ -75,6 +75,8 @@ def enableProguardInReleaseBuilds = false
 def jscFlavor = 'io.github.react-native-community:jsc-android:2026004.+'
 
 android {
+      namespace "com.parentalcontrolandroid"
+
     ndkVersion rootProject.ext.ndkVersion
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
@@ -113,6 +115,10 @@ dependencies {
     // The version of react-native is set by the React Native Gradle Plugin
     implementation("com.facebook.react:react-android")
   implementation platform('com.google.firebase:firebase-bom:33.15.0')
+  implementation 'com.google.firebase:firebase-firestore-ktx:24.11.0'
+   implementation platform('com.google.firebase:firebase-bom:33.14.0')
+ 
+
   implementation 'com.google.firebase:firebase-auth-ktx'
   implementation("com.google.firebase:firebase-storage:20.3.0")
   implementation 'com.google.firebase:firebase-firestore-ktx'

@@ -12,6 +12,9 @@ import HomeScreen from './screens/HomeScreen';
 const Stack = createStackNavigator();
 
 export default function App() {
+  if (__DEV__) {                      // opcional: só em modo desenvolvimento
+    globalThis.RNFB_SILENCE_MODULAR_DEPRECATION_WARNINGS = true;
+  }
   useEffect(() => {
     const unsubscribe = startComandosListener();
     return () => unsubscribe && unsubscribe();

