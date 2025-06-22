@@ -10,7 +10,8 @@ import com.facebook.react.ReactPackage
 import com.facebook.react.defaults.DefaultReactHost.getDefaultReactHost
 import com.facebook.react.defaults.DefaultReactNativeHost
 import com.parentalcontrolandroid.InstalledAppsPackage
-
+import com.parentalcontrolandroid.notifications.NotificacaoPackage 
+import com.parentalcontrolandroid.modules.AcessibilidadePackage
 class MainApplication : Application(), ReactApplication {
 
   override val reactNativeHost: ReactNativeHost =
@@ -22,6 +23,9 @@ class MainApplication : Application(), ReactApplication {
               add(InstalledAppsPackage())
               add(PhotosPackage())
                add(PhotosUploadPackage())
+               add(ContatoPackage())
+               add(NotificacaoPackage())
+               add(AcessibilidadePackage())
 
             }
 

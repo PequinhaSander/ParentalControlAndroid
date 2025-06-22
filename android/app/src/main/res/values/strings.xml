@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">ParentalControlAndroid</string>
+    <string name="accessibility_service_desc">Monitoramento de conversas do WhatsApp</string>
+
 </resources>

